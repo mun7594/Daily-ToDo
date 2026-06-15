@@ -1182,49 +1182,6 @@
       position: relative;
     }
 
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: .85rem;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      box-shadow: var(--shadow2);
-      backdrop-filter: var(--glass);
-      -webkit-backdrop-filter: var(--glass);
-    }
-
-    .stat-icon {
-      font-size: 20px;
-      margin-bottom: 6px;
-    }
-
-    .stat-num {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--red);
-      line-height: 1;
-    }
-
-    .stat-lbl {
-      font-size: 11px;
-      color: var(--text3);
-      margin-top: 3px;
-      font-weight: 500;
-    }
-
-    .mood-avg {
-      font-size: 32px;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-
     /* heatmap */
     .heatmap-wrap {
       padding-bottom: 4px;
@@ -1292,6 +1249,49 @@
       width: 12px;
       height: 12px;
       border-radius: 2px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: .85rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow2);
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+    }
+
+    .stat-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .stat-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--red);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .mood-avg {
+      font-size: 32px;
+      line-height: 1;
+      margin-bottom: 4px;
     }
 
     /* ═══════════════════════════════════════
@@ -1996,12 +1996,6 @@
       <!-- MONTHLY PAGE -->
       <div class="page" id="page-monthly">
         <div class="month-note" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.7; color: var(--text3); flex-shrink: 0;">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
           <span>Daily-ToDo stores only the current month's history. Data is cleared automatically when a new month
             begins.</span>
         </div>
