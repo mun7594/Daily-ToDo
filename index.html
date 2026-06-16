@@ -1967,7 +1967,7 @@
         </div>
       </div>
 
-  <!-- DASHBOARD PAGE -->
+ <!-- DASHBOARD PAGE -->
 <div class="page" id="page-dashboard">
   <div class="quote-card">
     <div class="quote-text" id="dash-quote">Every day is a fresh start.</div>
@@ -1980,22 +1980,18 @@
     </div>
     <div class="heatmap-legend">
       <span>Less</span>
-      ... legend content ...
+      <div class="legend-cells">
+        <div class="legend-cell" style="background:var(--border)"></div>
+        <div class="legend-cell" style="background:#f5b8b8"></div>
+        <div class="legend-cell" style="background:#e88080"></div>
+        <div class="legend-cell" style="background:var(--red)"></div>
+        <div class="legend-cell" style="background:var(--red-dark)"></div>
+      </div>
+      <span>More</span>
     </div>
   </div>
   <div class="stat-grid" id="dash-stats"></div>
 </div>
-            <div class="legend-cells">
-              <div class="legend-cell" style="background:var(--border)"></div>
-              <div class="legend-cell" style="background:#f5b8b8"></div>
-              <div class="legend-cell" style="background:#e88080"></div>
-              <div class="legend-cell" style="background:var(--red)"></div>
-              <div class="legend-cell" style="background:var(--red-dark)"></div>
-            </div>
-            <span>More</span>
-          </div>
-        </div>
-      </div>
 
       <!-- MONTHLY PAGE -->
       <div class="page" id="page-monthly">
@@ -2760,6 +2756,7 @@
       });
       const avgMoodKey = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
       const avgMoodDisplay = avgMoodKey ? MOODS[avgMoodKey] : "—";
+
 
       const activeDays = dates.filter(d => logMap[d] && (logMap[d].total_tasks || 0) > 0);
       const avgRate = activeDays.length ? Math.round(activeDays.reduce((s, d) => s + (logMap[d]?.completion_rate || 0), 0) / activeDays.length) : 0;
