@@ -2755,7 +2755,7 @@
         if (l.mood) moodCounts[l.mood] = (moodCounts[l.mood] || 0) + 1;
       });
       const avgMoodKey = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
-      const avgMoodDisplay = avgMoodKey ? MOODS[avgMoodKey] + " " + MOOD_LABELS[avgMoodKey] : "No data";
+      const avgMoodDisplay = avgMoodKey ? MOODS[avgMoodKey] : "—";
 
       const activeDays = dates.filter(d => logMap[d] && (logMap[d].total_tasks || 0) > 0);
       const avgRate = activeDays.length ? Math.round(activeDays.reduce((s, d) => s + (logMap[d]?.completion_rate || 0), 0) / activeDays.length) : 0;
