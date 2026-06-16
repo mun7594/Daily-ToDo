@@ -2447,10 +2447,11 @@
       await delTask(id);
     }
 
-    function toggleNewRecur() {
-      newRecurring = !newRecurring;
-      document.getElementById("recur-new-toggle").classList.toggle("active", newRecurring);
-    }
+   function toggleNewRecur() {
+  newRecurring = !newRecurring;
+  document.getElementById("recur-new-toggle").classList.toggle("active", newRecurring);
+  document.getElementById("task-input").placeholder = newRecurring ? "Put your repetitive tasks" : "What needs to be done?";
+}
 
     // ═══════════════════════════════════════════
     // DRAG TO REORDER
