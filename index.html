@@ -897,24 +897,30 @@
       color: var(--text);
     }
 
-    .task-menu-dropdown {
-      display: none;
-      white-space: nowrap;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      margin-top: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      min-width: 150px;
-      overflow: hidden;
-      backdrop-filter: var(--glass);
-      -webkit-backdrop-filter: var(--glass);
-      animation: dropdownFadeIn 0.15s ease;
-    }
+   .task-menu-dropdown {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  position: fixed;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  min-width: 150px;
+  overflow: hidden;
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+.task-menu-dropdown.show {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
 
     @keyframes dropdownFadeIn {
       from {
@@ -2401,22 +2407,29 @@
     let activeMenuId = null;
 
     function toggleTaskMenu(event, id) {
-      event.stopPropagation();
-      const dropdown = document.getElementById(`menu-${id}`);
-      const show = dropdown.classList.contains("show");
-      closeAllMenus();
-      if (!show) {
-        dropdown.classList.add("show");
-        activeMenuId = id;
-      }
-    }
+  event.stopPropagation();
+  const btn = event.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const dropdown = document.getElementById(`menu-${id}`);
+  const show = dropdown.classList.contains("show");
+  closeAllMenus();
+  if (!show) {
+    const dropWidth = 150;
+  let left = rect.right - dropWidth;
+  if (left < 8) left = 8;
+  dropdown.style.top = (rect.bottom + 4) + "px";
+  dropdown.style.left = left + "px";
+  dropdown.classList.add("show");
+  activeMenuId = id;
+  }
+}
 
     function closeAllMenus() {
-      document.querySelectorAll(".task-menu-dropdown.show").forEach(el => {
-        el.classList.remove("show");
-      });
-      activeMenuId = null;
-    }
+  document.querySelectorAll(".task-menu-dropdown").forEach(el => {
+    el.classList.remove("show");
+  });
+  activeMenuId = null;
+}
 
     document.addEventListener("click", () => {
       closeAllMenus();
