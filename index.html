@@ -2942,6 +2942,7 @@ div.innerHTML = `
   const btn = document.querySelector(`#summary-${date} .summary-btn`);
   const output = document.getElementById(`summary-output-${date}`);
  const log = monthLogMap[date];
+console.log("log data:", log, "date:", date, "monthLogMap:", monthLogMap);
 if (!log && date !== todayStr) {
   alert("No task data found for this date.");
   return;
