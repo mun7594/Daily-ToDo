@@ -1835,44 +1835,6 @@
       font-weight: 700;
       margin-bottom: 1.1rem;
     }
-
-    .summary-btn {
-  width: 100%;
-  height: 38px;
-  margin: .75rem 0 0;
-  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 50%, #0891b2 100%);
-  background-size: 200% 200%;
-  background-position: 0% 50%;
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity .2s, background-position .4s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-.summary-btn:hover {
-  opacity: .9;
-  background-position: 100% 50%;
-}
-.summary-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-.summary-output {
-  display: none;
-  margin-top: .75rem;
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.6;
-  padding: .85rem 1rem;
-  background: rgba(124, 58, 237, 0.07);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid #7c3aed;
-}
   </style>
 </head>
 
@@ -2243,7 +2205,7 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false, monthLogMap = {};
+    let user = null, tasks = [], newRecurring = false;
     let dragSrc = null;
     let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
     let logTimer = null;
@@ -2719,7 +2681,6 @@ div.innerHTML = `
       }
       const { data: logs } = await sb.from("daily_logs").select("*").eq("user_id", user.id).in("date", dates);
       const logMap = {}; (logs || []).forEach(l => logMap[l.date] = l);
-      monthLogMap = logMap;
 
       // live today
       const todayTasks = tasks.filter(t => t.date === todayStr || !t.date);
@@ -2771,12 +2732,6 @@ div.innerHTML = `
             <div class="history-check ${t.done ? "checked" : "unchecked"}">${t.done ? checkSVG() : ""}</div>
             ${esc(t.text)}
           </div>`).join("") : '<p style="font-size:13px;color:var(--text3)">No tasks recorded.</p>'}
-      </div>
-      <div class="summary-section" id="summary-${date}">
-        <button class="summary-btn" onclick="generateSummary('${date}')">
-          Generate AI Journal
-        </button>
-        <div class="summary-output" id="summary-output-${date}"></div>
       </div>
     </div>`;
       // re-render chart to update selection
@@ -2938,52 +2893,6 @@ div.innerHTML = `
     // ENTER key
     document.getElementById("task-input").addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
     document.getElementById("auth-pass").addEventListener("keydown", e => { if (e.key === "Enter") doAuth(); });
-  async function generateSummary(date) {
-  const btn = document.querySelector(`#summary-${date} .summary-btn`);
-  const output = document.getElementById(`summary-output-${date}`);
- const log = monthLogMap[date];
-console.log("log data:", log, "date:", date, "monthLogMap:", monthLogMap);
-if (!log && date !== todayStr) {
-  alert("No task data found for this date.");
-  return;
-}
-
-  const items = log.task_snapshot ? JSON.parse(log.task_snapshot) : [];
-  const completed = items.filter(t => t.done).map(t => t.text).join(", ") || "nothing at all";
-  const pending = items.filter(t => !t.done).map(t => t.text).join(", ") || "nothing (wow, overachiever!)";
-
-  btn.disabled = true;
-  btn.textContent = "Generating...";
-  output.style.display = "none";
-
-  const prompt = `You are a dramatically over-the-top humorous life coach who is equal parts sarcastic, 
-encouraging, and hilarious. Write a short funny journal entry (max 80 words) for someone's day. 
-Celebrate completed tasks like they just won an Olympic gold medal. 
-Roast the pending tasks like a disappointed but loving parent. 
-Be creative, punchy and make the person laugh.
-Completed tasks: ${completed}
-Pending tasks: ${pending}
-Date: ${date}`;
-
-  try {
-    const res = await fetch("/api/gemini", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hmm, even AI is speechless about your day.";
-    output.textContent = text;
-    output.style.display = "block";
-    btn.textContent = "✨ Regenerate";
-  } catch (err) {
-    output.textContent = "Failed to generate summary. Check your API key.";
-    output.style.display = "block";
-    btn.textContent = "✨ Generate AI Journal";
-  }
-
-  btn.disabled = false;
-}
   </script>
 </body>
 
