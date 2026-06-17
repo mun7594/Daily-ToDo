@@ -2244,7 +2244,7 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false;
+    let user = null, tasks = [], newRecurring = false, monthLogMap = {};
     let dragSrc = null;
     let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
     let logTimer = null;
@@ -2720,6 +2720,7 @@ div.innerHTML = `
       }
       const { data: logs } = await sb.from("daily_logs").select("*").eq("user_id", user.id).in("date", dates);
       const logMap = {}; (logs || []).forEach(l => logMap[l.date] = l);
+      monthLogMap = logMap;
 
       // live today
       const todayTasks = tasks.filter(t => t.date === todayStr || !t.date);
@@ -2773,17 +2774,11 @@ div.innerHTML = `
           </div>`).join("") : '<p style="font-size:13px;color:var(--text3)">No tasks recorded.</p>'}
       </div>
       <div class="summary-section" id="summary-${date}">
-  <button class="summary-btn">
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M7.5 1L8.6 4.4H12.2L9.3 6.5L10.4 9.9L7.5 7.8L4.6 9.9L5.7 6.5L2.8 4.4H6.4L7.5 1Z" fill="white"/>
-    <circle cx="12" cy="11.5" r="1.2" fill="white" opacity="0.8"/>
-    <circle cx="3.5" cy="12" r="0.9" fill="white" opacity="0.6"/>
-    <circle cx="12.5" cy="3.5" r="0.8" fill="white" opacity="0.55"/>
-  </svg>
-  Generate AI Journal
-  </button>
-  <div class="summary-output" id="summary-output-${date}"></div>
-</div>
+        <button class="summary-btn" onclick="generateSummary('${date}')">
+          Generate AI Journal
+        </button>
+        <div class="summary-output" id="summary-output-${date}"></div>
+      </div>
     </div>`;
       // re-render chart to update selection
       document.querySelectorAll(".bar-fill-bar").forEach((b, i) => {
@@ -2947,8 +2942,11 @@ div.innerHTML = `
   async function generateSummary(date) {
   const btn = document.querySelector(`#summary-${date} .summary-btn`);
   const output = document.getElementById(`summary-output-${date}`);
-  const log = monthLogMap[date];
-  if (!log) return;
+ const log = monthLogMap[date];
+if (!log && date !== todayStr) {
+  alert("No task data found for this date.");
+  return;
+}
 
   const items = log.task_snapshot ? JSON.parse(log.task_snapshot) : [];
   const completed = items.filter(t => t.done).map(t => t.text).join(", ") || "nothing at all";
