@@ -2966,17 +2966,10 @@ Date: ${date}`;
 
   try {
     const res = await fetch("/api/gemini", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ prompt })
-});
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      }
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hmm, even AI is speechless about your day.";
     output.textContent = text;
