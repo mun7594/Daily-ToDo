@@ -2416,6 +2416,7 @@ async function loadTasksForDate() {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
   tasks = data || [];
+  console.log("activeDate:", activeDate, "tasks loaded:", tasks.length, tasks);
   if (activeDate === todayStr) await injectRecurring();
   render();
   scheduleSaveLog();
