@@ -2422,7 +2422,7 @@ function renderDateStrip() {
       };
     }
     strip.appendChild(pill);
-    if (isActive) pill.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    if (isToday) pill.scrollIntoView({ inline: "start", block: "nearest", behavior: "instant" });
   }
   // enable mouse drag scroll
   const strip2 = document.getElementById("date-strip");
