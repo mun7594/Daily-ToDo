@@ -856,6 +856,7 @@
   overflow-x: auto;
   padding: 0 0 .85rem;
   scrollbar-width: none;
+  cursor: grab;
 }
 
 .date-strip::-webkit-scrollbar { display: none; }
@@ -2403,6 +2404,7 @@ function renderDateStrip() {
     strip.appendChild(pill);
     if (isActive) pill.scrollIntoView({ inline: "center", behavior: "smooth" });
   }
+  enableStripDrag();
 }
 
 async function loadTasksForDate() {
@@ -2429,15 +2431,29 @@ async function loadTasksForDate() {
     }
 
     async function injectRecurring() {
-      const recurring = tasks.filter(t => t.is_recurring);
-      for (const rt of recurring) {
-        const exists = tasks.find(t => t.text === rt.text && t.date === todayStr && t.id !== rt.id);
-        if (!exists && rt.date !== todayStr) {
-          const { data } = await sb.from("tasks").insert({ user_id: user.id, text: rt.text, done: false, is_recurring: true, date: todayStr, sort_order: 9999 }).select().single();
-          if (data) tasks.unshift(data);
-        }
-      }
+  // Load recurring task templates from DB separately
+  const { data: recurringTemplates } = await sb.from("tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_recurring", true);
+  
+  if (!recurringTemplates || recurringTemplates.length === 0) return;
+
+  for (const rt of recurringTemplates) {
+    const exists = tasks.find(t => t.text === rt.text && t.date === todayStr);
+    if (!exists) {
+      const { data } = await sb.from("tasks").insert({
+        user_id: user.id,
+        text: rt.text,
+        done: false,
+        is_recurring: false,
+        date: todayStr,
+        sort_order: 9999
+      }).select().single();
+      if (data) tasks.push(data);
     }
+  }
+}
 
    async function addTask() {
       const inp = document.getElementById("task-input");
