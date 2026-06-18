@@ -2416,16 +2416,18 @@ function renderDateStrip() {
     pill.innerHTML = `<div class="date-pill-day">${dayNames[dateObj.getDay()]}</div><div class="date-pill-num">${d}</div>`;
     if (!isPast) {
       pill.onclick = () => {
-        activeDate = dateStr;
-        renderDateStrip();
-        loadTasksForDate();
-      };
+  activeDate = dateStr;
+  // update active class without re-rendering
+  strip.querySelectorAll(".date-pill").forEach(p => p.classList.remove("active"));
+  pill.classList.add("active");
+  loadTasksForDate();
+};
     }
     strip.appendChild(pill);
     if (isToday) {
   setTimeout(() => {
     pill.scrollIntoView({ inline: "start", block: "nearest", behavior: "smooth" });
-  }, 300);
+  }, 120);
 }
   }
   // enable mouse drag scroll
