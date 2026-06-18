@@ -2380,6 +2380,26 @@ await loadTasksForDate();
     // ═══════════════════════════════════════════
     // TASKS — LOAD / CRUD
     // ═══════════════════════════════════════════
+    function enableStripDrag() {
+  const strip = document.getElementById("date-strip");
+  if (!strip) return;
+  let isDown = false, startX, scrollLeft;
+  strip.addEventListener("mousedown", e => {
+    isDown = true;
+    startX = e.pageX - strip.offsetLeft;
+    scrollLeft = strip.scrollLeft;
+  });
+  strip.addEventListener("mouseleave", () => isDown = false);
+  strip.addEventListener("mouseup", () => isDown = false);
+  strip.addEventListener("mousemove", e => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - strip.offsetLeft;
+    strip.scrollLeft = scrollLeft - (x - startX);
+  });
+}
+
+function renderDateStrip() {   // ← your existing function starts here
 function renderDateStrip() {
   const strip = document.getElementById("date-strip");
   if (!strip) return;
