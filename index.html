@@ -855,9 +855,10 @@
   gap: 6px;
   overflow-x: auto;
   padding: 0 0 .85rem;
-  scrollbar-width: none;
   cursor: grab;
 }
+
+.date-strip:active { cursor: grabbing; }
 
 .date-strip::-webkit-scrollbar { display: none; }
 .date-pill {
@@ -2412,7 +2413,6 @@ async function loadTasksForDate() {
     .select("*")
     .eq("user_id", user.id)
     .eq("date", activeDate)
-    .eq("is_recurring", false)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
   tasks = data || [];
