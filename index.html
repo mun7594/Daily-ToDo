@@ -2435,7 +2435,7 @@ function renderDateStrip() {
     strip2.addEventListener("mousemove", e => { if (!isDown) return; e.preventDefault(); strip2.scrollLeft = scrollLeft - (e.pageX - strip2.offsetLeft - startX); });
   }
 }
-}
+
 
 async function loadTasksForDate() {
   const { data } = await sb.from("tasks")
