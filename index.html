@@ -850,6 +850,39 @@
     .recur-toggle svg {
       flex-shrink: 0;
     }
+.date-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 0 .85rem;
+  scrollbar-width: none;
+}
+
+.date-strip::-webkit-scrollbar { display: none; }
+.date-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--tr);
+  padding: 0 8px;
+}
+.date-pill.today { border-color: var(--red); }
+.date-pill.active { background: var(--red); border-color: var(--red); }
+.date-pill.past { opacity: .4; cursor: not-allowed; pointer-events: none; }
+.date-pill-day { font-size: 10px; color: var(--text3); font-weight: 500; }
+.date-pill-num { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1; }
+.date-pill.active .date-pill-day,
+.date-pill.active .date-pill-num { color: #fff; }
+.date-pill.today .date-pill-num { color: var(--red); }
+.date-pill.active.today .date-pill-num { color: #fff; }
 
     /* task item */
     .task-list {
@@ -1918,6 +1951,7 @@
 
       <!-- TASKS PAGE -->
       <div class="page active" id="page-tasks">
+        <div class="date-strip" id="date-strip"></div>
         <div class="card progress-card">
           <div class="prog-row">
             <div>
@@ -1929,7 +1963,7 @@
             <div class="prog-fill" id="bar" style="width:0%"></div>
           </div>
           <div class="prog-lbl" id="prog-lbl">Add tasks to get started</div>
-          <div class="mood-section">
+          <div class="mood-section" id="mood-section">
             <div class="mood-label">How are you feeling today?</div>
             <div class="mood-row" id="mood-row">
               <button class="mood-btn" data-mood="energetic" data-emoji="⚡" onclick="setMood(this)"
@@ -2205,10 +2239,10 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false;
-    let dragSrc = null;
-    let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
-    let logTimer = null;
+    let user = null, tasks = [], newRecurring = false, activeDate = todayStr, monthLogMap = {};
+let dragSrc = null;
+let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
+let logTimer = null;
 
     // ═══════════════════════════════════════════
     // DATE
@@ -2333,7 +2367,8 @@
       document.getElementById("app").classList.add("visible");
       document.getElementById("dash-quote").textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
       await purgeOldData();
-      await loadTasks();
+      renderDateStrip();
+await loadTasksForDate();
       await loadTodayMood();
       await loadPomoStats();
       scheduleSaveLog();
@@ -2342,6 +2377,49 @@
     // ═══════════════════════════════════════════
     // TASKS — LOAD / CRUD
     // ═══════════════════════════════════════════
+function renderDateStrip() {
+  const strip = document.getElementById("date-strip");
+  if (!strip) return;
+  strip.innerHTML = "";
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = curYear + "-" + String(curMonth + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+    const dateObj = new Date(dateStr + "T00:00:00");
+    const isPast = dateStr < todayStr;
+    const isToday = dateStr === todayStr;
+    const isActive = dateStr === activeDate;
+    const pill = document.createElement("div");
+    pill.className = "date-pill" + (isPast ? " past" : "") + (isToday ? " today" : "") + (isActive ? " active" : "");
+    pill.innerHTML = `<div class="date-pill-day">${dayNames[dateObj.getDay()]}</div><div class="date-pill-num">${d}</div>`;
+    if (!isPast) {
+      pill.onclick = () => {
+        activeDate = dateStr;
+        renderDateStrip();
+        loadTasksForDate();
+      };
+    }
+    strip.appendChild(pill);
+    if (isActive) pill.scrollIntoView({ inline: "center", behavior: "smooth" });
+  }
+}
+
+async function loadTasksForDate() {
+  const { data } = await sb.from("tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("date", activeDate)
+    .eq("is_recurring", false)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+  tasks = data || [];
+  if (activeDate === todayStr) await injectRecurring();
+  render();
+  scheduleSaveLog();
+  const moodSection = document.getElementById("mood-section");
+  if (moodSection) moodSection.style.display = activeDate > todayStr ? "none" : "block";
+}
+
     async function loadTasks() {
       const { data } = await sb.from("tasks").select("*").eq("user_id", user.id).order("sort_order", { ascending: true }).order("created_at", { ascending: false });
       tasks = data || [];
@@ -2360,13 +2438,13 @@
       }
     }
 
-    async function addTask() {
+   async function addTask() {
       const inp = document.getElementById("task-input");
       const btn = document.getElementById("add-btn");
       const txt = inp.value.trim();
       if (!txt) return;
       inp.value = ""; btn.disabled = true;
-      const { data, error } = await sb.from("tasks").insert({ user_id: user.id, text: txt, done: false, is_recurring: newRecurring, date: todayStr, sort_order: 0 }).select().single();
+      const { data, error } = await sb.from("tasks").insert({ user_id: user.id, text: txt, done: false, is_recurring: newRecurring, date: activeDate, sort_order: 0 }).select().single();
       btn.disabled = false;
       if (!error && data) { tasks.unshift(data); render(); scheduleSaveLog(); }
       inp.focus();
@@ -2657,7 +2735,7 @@ div.innerHTML = `
       const total = todayTasks.length, completed = todayTasks.filter(t => t.done).length;
       const rate = total ? Math.round(completed / total * 100) : 0;
       const taskSnapshot = JSON.stringify(todayTasks.map(t => ({ text: t.text, done: t.done })));
-      await sb.from("daily_logs").upsert({ user_id: user.id, date: todayStr, total_tasks: total, completed_tasks: completed, completion_rate: rate, task_snapshot: taskSnapshot }, { onConflict: "user_id,date" });
+      await sb.from("daily_logs").upsert({ user_id: user.id, date: activeDate, total_tasks: total, completed_tasks: completed, completion_rate: rate, task_snapshot: taskSnapshot }, { onConflict: "user_id,date" });
     }
 
     // ═══════════════════════════════════════════
