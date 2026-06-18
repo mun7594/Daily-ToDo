@@ -2745,7 +2745,7 @@ div.innerHTML = `
     }
 
     function render(skipAnim) {
-      const todayTasks = tasks.filter(t => t.date === todayStr || !t.date);
+      const todayTasks = tasks.filter(t => t.date === activeDate || !t.date);
       const pending = todayTasks.filter(t => !t.done);
       const done = todayTasks.filter(t => t.done);
       const total = todayTasks.length, doneN = done.length;
