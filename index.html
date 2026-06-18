@@ -2239,7 +2239,7 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false, activeDate = todayStr, monthLogMap = {};
+    let user = null, tasks = [], newRecurring = false, monthLogMap = {};
 let dragSrc = null;
 let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
 let logTimer = null;
@@ -2252,6 +2252,7 @@ let logTimer = null;
     const MONTHS_S = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const now0 = new Date();
     const todayStr = now0.toISOString().split("T")[0];
+let activeDate = todayStr;
     const curMonth = now0.getMonth(), curYear = now0.getFullYear();
 
     document.getElementById("topbar-date").textContent = DAYS_F[now0.getDay()].slice(0, 3) + ", " + now0.getDate() + " " + MONTHS_S[curMonth];
