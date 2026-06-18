@@ -2425,7 +2425,17 @@ function renderDateStrip() {
     strip.appendChild(pill);
     if (isActive) pill.scrollIntoView({ inline: "center", behavior: "smooth" });
   }
-  enableStripDrag();
+  // enable mouse drag scroll
+  const strip2 = document.getElementById("date-strip");
+  if (strip2) {
+    strip2.onmousedown = null;
+    let isDown = false, startX, scrollLeft;
+    strip2.addEventListener("mousedown", e => { isDown = true; startX = e.pageX - strip2.offsetLeft; scrollLeft = strip2.scrollLeft; });
+    strip2.addEventListener("mouseleave", () => isDown = false);
+    strip2.addEventListener("mouseup", () => isDown = false);
+    strip2.addEventListener("mousemove", e => { if (!isDown) return; e.preventDefault(); strip2.scrollLeft = scrollLeft - (e.pageX - strip2.offsetLeft - startX); });
+  }
+}
 }
 
 async function loadTasksForDate() {
