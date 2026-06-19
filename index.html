@@ -1051,7 +1051,7 @@
   width: 0;
   height: 1.5px;
   background: var(--text3);
-  transition: width 0.35s ease;
+  transition: width 0.7s ease;
 }
 .task-item.completing .task-label::after {
   width: 100%;
@@ -2541,7 +2541,7 @@ async function loadTasksForDate() {
     setTimeout(() => {
       t.done = !t.done;
       render();
-    }, 250);
+    }, 700);
   } else {
     t.done = !t.done;
     render();
