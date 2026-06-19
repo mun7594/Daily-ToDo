@@ -1040,6 +1040,15 @@
       background: transparent;
     }
 
+    @keyframes taskComplete {
+  0%   { transform: translateX(0) scale(1); opacity: 1; }
+  50%  { transform: translateX(20px) scale(0.97); opacity: 0.5; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+.task-item.completing {
+  animation: taskComplete 0.4s ease;
+}
+
     @keyframes slideIn {
       from {
         opacity: 0;
@@ -1875,6 +1884,18 @@
 
 <body>
 
+<div class="modal-overlay" id="modal-confirm-delete">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Remove Task?</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:1rem">Remove this task?</p>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="settings-btn" style="flex:1;margin:0" onclick="closeModal('modal-confirm-delete')">Cancel</button>
+      <button class="auth-submit" style="flex:1;margin:0;background:#e53" onclick="confirmDeleteTask()">Remove</button>
+    </div>
+  </div>
+</div>
+
   <!-- LOADING -->
   <div id="loading">
     <img class="load-logo"
@@ -2482,7 +2503,7 @@ async function loadTasksForDate() {
         user_id: user.id,
         text: rt.text,
         done: false,
-        is_recurring: false,
+        is_recurring: true,
         date: todayStr,
         sort_order: 9999
       }).select().single();
@@ -2504,17 +2525,40 @@ async function loadTasksForDate() {
     }
 
     async function toggleTask(id) {
-      const t = tasks.find(x => x.id === id); if (!t) return;
-      t.done = !t.done; render();
-      await sb.from("tasks").update({ done: t.done }).eq("id", id);
-      scheduleSaveLog();
-    }
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  const taskEl = document.querySelector(`[data-id="${id}"]`);
+  
+  if (!t.done && taskEl) {
+    taskEl.classList.add("completing");
+    setTimeout(() => {
+      t.done = !t.done;
+      render();
+    }, 250);
+  } else {
+    t.done = !t.done;
+    render();
+  }
+  
+  await sb.from("tasks").update({ done: !t.done ? false : true }).eq("id", id);
+  scheduleSaveLog();
+}
 
-    async function delTask(id) {
-      tasks = tasks.filter(x => x.id !== id); render();
-      await sb.from("tasks").delete().eq("id", id);
-      scheduleSaveLog();
-    }
+    let pendingDeleteId = null;
+
+function delTask(id) {
+  pendingDeleteId = id;
+  openModal("modal-confirm-delete");
+}
+
+async function confirmDeleteTask() {
+  const id = pendingDeleteId;
+  if (!id) return;
+  tasks = tasks.filter(x => x.id !== id); render();
+  await sb.from("tasks").delete().eq("id", id);
+  scheduleSaveLog();
+  closeModal("modal-confirm-delete");
+  pendingDeleteId = null;
+}
 
     async function clearDone() {
       const ids = tasks.filter(t => t.done && t.date === todayStr).map(t => t.id);
@@ -2832,6 +2876,14 @@ div.innerHTML = `
         col.innerHTML = `<div class="bar-fill-wrap"><div class="${barClass}" style="height:${isFuture ? 0 : heightPct}%"></div></div><div class="bar-day-lbl${date === selectedDate ? " selected-lbl" : ""}">${day}</div>`;
         chart.appendChild(col);
       });
+
+      // center today's bar in the chart view
+      setTimeout(() => {
+        const todayBar = chart.querySelector(".today-bar");
+        if (todayBar) {
+          todayBar.closest(".bar-col").scrollIntoView({ inline: "center", block: "nearest", behavior: "instant" });
+        }
+      }, 50);
 
       showHistory(selectedDate, logMap);
     }
