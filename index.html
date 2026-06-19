@@ -1040,13 +1040,21 @@
       background: transparent;
     }
 
-    @keyframes taskComplete {
-  0%   { transform: translateX(0) scale(1); opacity: 1; }
-  50%  { transform: translateX(20px) scale(0.97); opacity: 0.5; }
-  100% { transform: translateX(0) scale(1); opacity: 1; }
+    .task-label {
+  position: relative;
 }
-.task-item.completing {
-  animation: taskComplete 0.4s ease;
+.task-label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 1.5px;
+  background: var(--text3);
+  transition: width 0.35s ease;
+}
+.task-item.completing .task-label::after {
+  width: 100%;
 }
 
     @keyframes slideIn {
