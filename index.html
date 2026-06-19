@@ -2878,14 +2878,14 @@ div.innerHTML = `
       });
 
       // center today's bar in the chart view
-      if (!chartAlreadyCentered) {
-      setTimeout(() => {
-        const todayBar = chart.querySelector(".today-bar");
-        if (todayBar) {
-          todayBar.closest(".bar-col").scrollIntoView({ inline: "center", block: "nearest", behavior: "instant" });
-        }
-      }, 50);
-      chartAlreadyCentered = true;
+if (!chartCentered) {
+  setTimeout(() => {
+    const todayBar = chart.querySelector(".today-bar");
+    if (todayBar) {
+      todayBar.closest(".bar-col").scrollIntoView({ inline: "center", block: "nearest", behavior: "instant" });
+    }
+  }, 50);
+  chartCentered = true;
 }
 
       showHistory(selectedDate, logMap);
@@ -2921,12 +2921,16 @@ div.innerHTML = `
           </div>`).join("") : '<p style="font-size:13px;color:var(--text3)">No tasks recorded.</p>'}
       </div>
     </div>`;
-      // re-render chart to update selection
-      document.querySelectorAll(".bar-fill-bar").forEach((b, i) => {
-        const colDate = b.parentElement?.parentElement?.querySelector(".bar-day-lbl")?.textContent;
-        // Just reload chart
+      // update bar selection visually without rebuilding chart
+      document.querySelectorAll(".bar-col").forEach(col => {
+        const lbl = col.querySelector(".bar-day-lbl");
+        const bar = col.querySelector(".bar-fill-bar");
+        if (!lbl || !bar) return;
+        const day = parseInt(lbl.textContent);
+        const colDateStr = curYear + "-" + String(curMonth + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        bar.classList.toggle("selected", colDateStr === selectedDate);
+        lbl.classList.toggle("selected-lbl", colDateStr === selectedDate);
       });
-      await loadMonthly(); // refresh chart selection
     }
 
     // ═══════════════════════════════════════════
