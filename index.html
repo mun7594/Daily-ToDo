@@ -2535,20 +2535,22 @@ async function loadTasksForDate() {
     async function toggleTask(id) {
   const t = tasks.find(x => x.id === id); if (!t) return;
   const taskEl = document.querySelector(`[data-id="${id}"]`);
-  
-  if (!t.done && taskEl) {
+  const newDoneState = !t.done;
+
+  if (newDoneState && taskEl) {
     taskEl.classList.add("completing");
-    setTimeout(() => {
-      t.done = !t.done;
+    setTimeout(async () => {
+      t.done = newDoneState;
       render();
+      await sb.from("tasks").update({ done: newDoneState }).eq("id", id);
+      scheduleSaveLog();
     }, 700);
   } else {
-    t.done = !t.done;
+    t.done = newDoneState;
     render();
+    await sb.from("tasks").update({ done: newDoneState }).eq("id", id);
+    scheduleSaveLog();
   }
-  
-  await sb.from("tasks").update({ done: !t.done ? false : true }).eq("id", id);
-  scheduleSaveLog();
 }
 
     let pendingDeleteId = null;
