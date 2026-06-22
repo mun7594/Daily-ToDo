@@ -2295,7 +2295,8 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false, monthLogMap = {}, chartCentered = false, collapsedCategories = new Set();
+    let user = null, tasks = [], newRecurring = false, monthLogMap = {}, chartCentered = false;
+let collapsedCategories = new Set(JSON.parse(localStorage.getItem("collapsedCategories") || "[]"));
 let dragSrc = null;
 let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
 let logTimer = null;
@@ -2832,6 +2833,7 @@ div.innerHTML = `
 function toggleCategoryCollapse(key) {
   if (collapsedCategories.has(key)) collapsedCategories.delete(key);
   else collapsedCategories.add(key);
+  localStorage.setItem("collapsedCategories", JSON.stringify([...collapsedCategories]));
   render();
 }
   
