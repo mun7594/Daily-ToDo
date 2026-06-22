@@ -2051,12 +2051,17 @@
           <div class="empty-state">No tasks yet — add one above!</div>
         </div>
 
-        <div class="done-section" id="done-section">
-          <div class="divider"></div>
-          <div class="section-label">Completed</div>
-          <div class="task-list" id="done-list"></div>
-        </div>
-      </div>
+        <div class="done-section category-section" id="done-section">
+  <div class="divider"></div>
+  <div class="category-header" onclick="toggleCategoryCollapse('completed')">
+    <div class="category-header-left">
+      <span class="category-name">Completed</span>
+      <span class="category-count" id="completed-count"></span>
+    </div>
+    <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div class="category-tasks" id="done-list"></div>
+</div>
 
  <!-- DASHBOARD PAGE -->
 <div class="page" id="page-dashboard">
@@ -2852,27 +2857,6 @@ function toggleCategoryCollapse(key) {
     const constantTasks = pending.filter(t => t.is_recurring);
     const regularTasks = pending.filter(t => !t.is_recurring);
 
-    if (constantTasks.length) {
-      const section = document.createElement("div");
-      section.className = "category-section" + (collapsedCategories.has("constant") ? " collapsed" : "");
-      const header = document.createElement("div");
-      header.className = "category-header";
-      header.innerHTML = `
-        <div class="category-header-left">
-          <span>🔁</span>
-          <span class="category-name">Recurring Tasks</span>
-          <span class="category-count">${constantTasks.length}</span>
-        </div>
-        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
-      header.onclick = () => toggleCategoryCollapse("constant");
-      const wrap = document.createElement("div");
-      wrap.className = "category-tasks";
-      constantTasks.forEach(t => wrap.appendChild(makeTask(t, false, skipAnim)));
-      section.appendChild(header);
-      section.appendChild(wrap);
-      pl.appendChild(section);
-    }
-
     if (regularTasks.length) {
       const section2 = document.createElement("div");
       section2.className = "category-section" + (collapsedCategories.has("general") ? " collapsed" : "");
@@ -2893,13 +2877,40 @@ function toggleCategoryCollapse(key) {
       section2.appendChild(wrap2);
       pl.appendChild(section2);
     }
+
+    if (constantTasks.length) {
+      const section = document.createElement("div");
+      section.className = "category-section" + (collapsedCategories.has("constant") ? " collapsed" : "");
+      const header = document.createElement("div");
+      header.className = "category-header";
+      header.innerHTML = `
+        <div class="category-header-left">
+          <span>🔁</span>
+          <span class="category-name">Recurring Tasks</span>
+          <span class="category-count">${constantTasks.length}</span>
+        </div>
+        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+      header.onclick = () => toggleCategoryCollapse("constant");
+      const wrap = document.createElement("div");
+      wrap.className = "category-tasks";
+      constantTasks.forEach(t => wrap.appendChild(makeTask(t, false, skipAnim)));
+      section.appendChild(header);
+      section.appendChild(wrap);
+      pl.appendChild(section);
+    }
   }
 
   const ds = document.getElementById("done-section");
-  const dl = document.getElementById("done-list");
-  dl.innerHTML = "";
-  if (done.length) { ds.classList.add("visible"); done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim))); }
-  else { ds.classList.remove("visible"); }
+const dl = document.getElementById("done-list");
+dl.innerHTML = "";
+document.getElementById("completed-count").textContent = done.length;
+if (done.length) {
+  ds.classList.add("visible");
+  ds.classList.toggle("collapsed", collapsedCategories.has("completed"));
+  done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim)));
+} else {
+  ds.classList.remove("visible");
+}
 
   scheduleSaveLog();
 }
@@ -2984,10 +2995,15 @@ if (!chartCentered) {
       const items = log?.task_snapshot ? JSON.parse(log.task_snapshot) : [];
       const mood = log?.mood ? (MOODS[log.mood] || "") : "";
       const rate = log?.completion_rate ?? 0;
+      const completedCount = items.filter(t => t.done).length;
+const totalCount = items.length;
       panel.innerHTML = `
     <div class="history-card">
       <div class="history-header">
-        <div><div class="history-date">${label}</div></div>
+        <div>
+          <div class="history-date">${label}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px">${completedCount}/${totalCount} tasks</div>
+        </div>
         <div style="display:flex;align-items:center;gap:10px">
           ${mood ? `<div class="history-mood">${mood}</div>` : ""}
           <div class="history-pct">${rate}%</div>
