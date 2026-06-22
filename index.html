@@ -889,6 +889,23 @@
 .date-pill.active.today .date-pill-num { color: #fff; }
 
     /* task item */
+.category-section { margin-bottom: 1rem; }
+.category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.category-header-left { display: flex; align-items: center; gap: 8px; }
+.category-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.category-count { font-size: 11px; color: var(--text3); font-family: "JetBrains Mono", monospace; }
+.category-chevron { transition: transform 0.2s ease; color: var(--text3); }
+.category-section.collapsed .category-chevron { transform: rotate(-90deg); }
+.category-tasks { display: flex; flex-direction: column; gap: 6px; }
+.category-section.collapsed .category-tasks { display: none; }
+
     .task-list {
       display: flex;
       flex-direction: column;
@@ -2272,7 +2289,7 @@
     // ═══════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════
-    let user = null, tasks = [], newRecurring = false, monthLogMap = {}, chartCentered = false;
+    let user = null, tasks = [], newRecurring = false, monthLogMap = {}, chartCentered = false, collapsedCategories = new Set();
 let dragSrc = null;
 let pomoMode = "pomo", pomoMins = 25, pomoSecs = 0, pomoRunning = false, pomoInterval = null, pomoSessions = 0, pomoFocusSecs = 0;
 let logTimer = null;
@@ -2806,35 +2823,67 @@ div.innerHTML = `
       return div;
     }
 
+function toggleCategoryCollapse(key) {
+  if (collapsedCategories.has(key)) collapsedCategories.delete(key);
+  else collapsedCategories.add(key);
+  render();
+}
   
     function render(skipAnim) {
-      const todayTasks = tasks.filter(t => t.date === activeDate || !t.date);
-      const pending = todayTasks.filter(t => !t.done);
-      const done = todayTasks.filter(t => t.done);
-      const total = todayTasks.length, doneN = done.length;
-      const pct = total ? Math.round(doneN / total * 100) : 0;
+  const todayTasks = tasks.filter(t => t.date === activeDate || !t.date);
+  const pending = todayTasks.filter(t => !t.done);
+  const done = todayTasks.filter(t => t.done);
+  const total = todayTasks.length, doneN = done.length;
+  const pct = total ? Math.round(doneN / total * 100) : 0;
 
-      document.getElementById("pct-display").textContent = pct + "%";
-      document.getElementById("count-label").textContent = doneN + " of " + total + " done";
-      document.getElementById("bar").style.width = pct + "%";
-      document.getElementById("prog-lbl").textContent = total
-        ? (pct === 100 ? "All done — great work! 🎉" : doneN + " task" + (doneN !== 1 ? "s" : "") + " completed")
-        : "Add tasks to get started";
+  document.getElementById("pct-display").textContent = pct + "%";
+  document.getElementById("count-label").textContent = doneN + " of " + total + " done";
+  document.getElementById("bar").style.width = pct + "%";
+  document.getElementById("prog-lbl").textContent = total
+    ? (pct === 100 ? "All done — great work! 🎉" : doneN + " task" + (doneN !== 1 ? "s" : "") + " completed")
+    : "Add tasks to get started";
 
-      const pl = document.getElementById("pending-list");
-      pl.innerHTML = "";
-      if (!pending.length) {
-        pl.innerHTML = '<div class="empty-state">' + (total === 0 ? "No tasks yet — add one above!" : "All tasks completed! 🎉") + '</div>';
-      } else { pending.forEach(t => pl.appendChild(makeTask(t, false, skipAnim))); }
+  const pl = document.getElementById("pending-list");
+  pl.innerHTML = "";
 
-      const ds = document.getElementById("done-section");
-      const dl = document.getElementById("done-list");
-      dl.innerHTML = "";
-      if (done.length) { ds.classList.add("visible"); done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim))); }
-      else { ds.classList.remove("visible"); }
+  if (!pending.length) {
+    pl.innerHTML = '<div class="empty-state">' + (total === 0 ? "No tasks yet — add one above!" : "All tasks completed! 🎉") + '</div>';
+  } else {
+    const constantTasks = pending.filter(t => t.is_recurring);
+    const regularTasks = pending.filter(t => !t.is_recurring);
 
-      scheduleSaveLog();
+    if (constantTasks.length) {
+      const section = document.createElement("div");
+      section.className = "category-section" + (collapsedCategories.has("constant") ? " collapsed" : "");
+      const header = document.createElement("div");
+      header.className = "category-header";
+      header.innerHTML = `
+        <div class="category-header-left">
+          <span>🔁</span>
+          <span class="category-name">Constant</span>
+          <span class="category-count">${constantTasks.length}</span>
+        </div>
+        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+      header.onclick = () => toggleCategoryCollapse("constant");
+      const wrap = document.createElement("div");
+      wrap.className = "category-tasks";
+      constantTasks.forEach(t => wrap.appendChild(makeTask(t, false, skipAnim)));
+      section.appendChild(header);
+      section.appendChild(wrap);
+      pl.appendChild(section);
     }
+
+    regularTasks.forEach(t => pl.appendChild(makeTask(t, false, skipAnim)));
+  }
+
+  const ds = document.getElementById("done-section");
+  const dl = document.getElementById("done-list");
+  dl.innerHTML = "";
+  if (done.length) { ds.classList.add("visible"); done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim))); }
+  else { ds.classList.remove("visible"); }
+
+  scheduleSaveLog();
+}
 
     // ═══════════════════════════════════════════
     // SAVE DAILY LOG
