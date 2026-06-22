@@ -2051,11 +2051,17 @@
           <div class="empty-state">No tasks yet — add one above!</div>
         </div>
 
-        <div class="done-section" id="done-section">
-          <div class="divider"></div>
-          <div class="section-label">Completed</div>
-          <div class="task-list" id="done-list"></div>
-        </div>
+        <div class="done-section category-section" id="done-section">
+  <div class="divider"></div>
+  <div class="category-header" onclick="toggleCategoryCollapse('completed')">
+    <div class="category-header-left">
+      <span class="category-name">Completed</span>
+      <span class="category-count" id="completed-count"></span>
+    </div>
+    <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div class="category-tasks" id="done-list"></div>
+</div>
       </div>
 
  <!-- DASHBOARD PAGE -->
@@ -2852,6 +2858,27 @@ function toggleCategoryCollapse(key) {
     const constantTasks = pending.filter(t => t.is_recurring);
     const regularTasks = pending.filter(t => !t.is_recurring);
 
+if (regularTasks.length) {
+      const section2 = document.createElement("div");
+      section2.className = "category-section" + (collapsedCategories.has("general") ? " collapsed" : "");
+      const header2 = document.createElement("div");
+      header2.className = "category-header";
+      header2.innerHTML = `
+        <div class="category-header-left">
+          <span>📌</span>
+          <span class="category-name">General Tasks</span>
+          <span class="category-count">${regularTasks.length}</span>
+        </div>
+        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+      header2.onclick = () => toggleCategoryCollapse("general");
+      const wrap2 = document.createElement("div");
+      wrap2.className = "category-tasks";
+      regularTasks.forEach(t => wrap2.appendChild(makeTask(t, false, skipAnim)));
+      section2.appendChild(header2);
+      section2.appendChild(wrap2);
+      pl.appendChild(section2);
+    }
+
     if (constantTasks.length) {
       const section = document.createElement("div");
       section.className = "category-section" + (collapsedCategories.has("constant") ? " collapsed" : "");
@@ -2872,34 +2899,19 @@ function toggleCategoryCollapse(key) {
       section.appendChild(wrap);
       pl.appendChild(section);
     }
-
-    if (regularTasks.length) {
-      const section2 = document.createElement("div");
-      section2.className = "category-section" + (collapsedCategories.has("general") ? " collapsed" : "");
-      const header2 = document.createElement("div");
-      header2.className = "category-header";
-      header2.innerHTML = `
-        <div class="category-header-left">
-          <span>📌</span>
-          <span class="category-name">General Tasks</span>
-          <span class="category-count">${regularTasks.length}</span>
-        </div>
-        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
-      header2.onclick = () => toggleCategoryCollapse("general");
-      const wrap2 = document.createElement("div");
-      wrap2.className = "category-tasks";
-      regularTasks.forEach(t => wrap2.appendChild(makeTask(t, false, skipAnim)));
-      section2.appendChild(header2);
-      section2.appendChild(wrap2);
-      pl.appendChild(section2);
-    }
   }
 
   const ds = document.getElementById("done-section");
-  const dl = document.getElementById("done-list");
-  dl.innerHTML = "";
-  if (done.length) { ds.classList.add("visible"); done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim))); }
-  else { ds.classList.remove("visible"); }
+const dl = document.getElementById("done-list");
+dl.innerHTML = "";
+document.getElementById("completed-count").textContent = done.length;
+if (done.length) {
+  ds.classList.add("visible");
+  ds.classList.toggle("collapsed", collapsedCategories.has("completed"));
+  done.forEach(t => dl.appendChild(makeTask(t, true, skipAnim)));
+} else {
+  ds.classList.remove("visible");
+}
 
   scheduleSaveLog();
 }
