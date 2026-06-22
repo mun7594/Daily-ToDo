@@ -2860,7 +2860,7 @@ function toggleCategoryCollapse(key) {
       header.innerHTML = `
         <div class="category-header-left">
           <span>🔁</span>
-          <span class="category-name">Constant</span>
+          <span class="category-name">Recurring Tasks</span>
           <span class="category-count">${constantTasks.length}</span>
         </div>
         <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -2873,7 +2873,26 @@ function toggleCategoryCollapse(key) {
       pl.appendChild(section);
     }
 
-    regularTasks.forEach(t => pl.appendChild(makeTask(t, false, skipAnim)));
+    if (regularTasks.length) {
+      const section2 = document.createElement("div");
+      section2.className = "category-section" + (collapsedCategories.has("general") ? " collapsed" : "");
+      const header2 = document.createElement("div");
+      header2.className = "category-header";
+      header2.innerHTML = `
+        <div class="category-header-left">
+          <span>📌</span>
+          <span class="category-name">General Tasks</span>
+          <span class="category-count">${regularTasks.length}</span>
+        </div>
+        <svg class="category-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+      header2.onclick = () => toggleCategoryCollapse("general");
+      const wrap2 = document.createElement("div");
+      wrap2.className = "category-tasks";
+      regularTasks.forEach(t => wrap2.appendChild(makeTask(t, false, skipAnim)));
+      section2.appendChild(header2);
+      section2.appendChild(wrap2);
+      pl.appendChild(section2);
+    }
   }
 
   const ds = document.getElementById("done-section");
